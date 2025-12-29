@@ -10,6 +10,7 @@ import data_pb2
 import encode_id_clan_pb2
 import reqClan_pb2
 import jwt as pyjwt
+import os
 
 app = Flask(__name__)
 freefire_version = "OB51"
@@ -131,23 +132,17 @@ def join_clan():
     password = request.args.get('password')
 
     if not clan_id:
-        return jsonify({
-            "error": "clan_id is required"
-        }), 400
+        return jsonify({"error": "clan_id is required"}), 400
 
     final_token = jwt_token
     
     if uid and password and not final_token:
         final_token = get_jwt_token_from_api(uid, password)
         if not final_token:
-            return jsonify({
-                "error": "Failed to get JWT token from uid/password"
-            }), 400
+            return jsonify({"error": "Failed to get JWT token from uid/password"}), 400
 
     if not final_token:
-        return jsonify({
-            "error": "Either jwt token or uid/password is required"
-        }), 400
+        return jsonify({"error": "Either jwt token or uid/password is required"}), 400
 
     final_region = get_region_from_jwt(final_token)
 
@@ -201,13 +196,11 @@ def join_clan():
         return jsonify(result)
 
     except Exception as e:
-        return jsonify({
-            "error": "Server error",
-            "details": str(e)
-        }), 500
+        return jsonify({"error": "Server error", "details": str(e)}), 500
 
+
+# Keep this block for local running as well as Vercel will ignore it
 if __name__ == '__main__':
-    import sys
-    port = int(sys.argv[1]) if len(sys.argv) > 1 else 5000
+    port = int(os.environ.get("PORT", 5000))
     print(f"Starting Clan Join API on port {port} ...")
     app.run(host='0.0.0.0', port=port, debug=False)
